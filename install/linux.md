@@ -1,6 +1,6 @@
 # Cài đặt và Cấu hình Replication trên PostgreSQL
 
-Hướng dẫn này mô tả cách thiết lập **asynchronous streaming replication** với 1 master và 2 slaves trên PostgreSQL (ví dụ: phiên bản 14).
+Hướng dẫn này mô tả cách thiết lập **asynchronous streaming replication** với 1 master và 2 slaves trên PostgreSQL phiên bản 14.
 
 ## Yêu cầu
 - PostgreSQL cài trên cả 3 node (master, slave_1, slave_2):
@@ -84,6 +84,14 @@ sudo systemctl stop postgresql
   listen_addresses = '*'
   max_connections = 1000
   ```
+  Trong đó:
+
+  + `wal_level = replica`: Xác định mức độ chi tiết thông tin được Master ghi vào WAL, mức này ghi nhiều thông tin hơn minimal nhưng ít hơn logical (mức cần cho logical replication/decoding).
+  + `max_wal_senders = 10`: Đặt số lượng tối đa các tiến trình gửi WAL (WAL sender process) có thể chạy đồng thời. Các tiến trình này chịu trách nhiệm truyền (stream) dữ liệu WAL từ máy chủ chính này đến các máy chủ standby.
+  + `max_replication_slots = 10`: Đặt số lượng tối đa các replication slot mà máy chủ có thể quản lý. Replication slot đảm bảo rằng máy chủ chính sẽ không xóa các file WAL mà một máy chủ standby cụ thể (đang sử dụng slot đó) vẫn cần, ngay cả khi standby bị ngắt kết nối tạm thời. Điều này ngăn chặn việc standby không thể tiếp tục đồng bộ do thiếu file WAL trên primary.
+  + `wal_keep_size = 256`: Chỉ định dung lượng tối thiểu của các file WAL cũ sẽ được giữ lại trong thư mục pg_wal ngay cả khi không có standby nào cần chúng. Cung cấp một vùng đệm an toàn cho các standby không sử dụng replication slot. Nếu standby bị chậm lại, nó vẫn có cơ hội tìm thấy file WAL cần thiết nếu chúng nằm trong giới hạn 256MB này.
+  + `listen_addresses = '*'`: Lắng nghe trên tất cả các địa chỉ IP (cả IPv4 và IPv6) có sẵn trên máy chủ.
+  + `max_connections = 1000`: Đặt số lượng tối đa các kết nối client đồng thời được phép kết nối tới máy chủ PostgreSQL.
 
 #### 1.3. Chỉnh sửa `pg_hba.conf`
 - File cấu hình thường nằm ở vị trí `/etc/postgresql/14/main/pg_hba.conf` hoặc bạn có thể show file config bằng cách query `SHOW config_file;`:
@@ -108,9 +116,9 @@ sudo systemctl stop postgresql
   host    replication     replicator    192.168.110.32/24    md5
   host    replication     replicator    192.168.110.164/24   md5
   ```
-    Lưu ý thay địa chỉ ip bằng địa chỉ ip các node của bạn
+    Lưu ý thay địa chỉ ip bằng địa chỉ ip các node Slave của bạn
 #### 1.4. Tạo user replication
-- Trên master, truy cập vào postgresql cli chạy lệnh tạo user replicator với quyền replication:
+- Trên Master, truy cập vào postgresql cli chạy lệnh tạo user replicator với quyền replication:
   ```sql
   CREATE ROLE replicator WITH REPLICATION LOGIN PASSWORD 'your_secure_password';
   ```
@@ -153,7 +161,7 @@ sudo systemctl restart postgresql
   primary_slot_name = 'slave_1'
   max_connections = 1000
   ```
-    **Lưu ý điền password bạn đã đặt vào phần** `your_secure_password`
+    Lưu ý thay địa chỉ ip host Master của bạn và điền password bạn đã đặt vào phần `your_secure_password`
 ##### 2.2.2. Trên Slave_2:
 - File: `/etc/postgresql/14/main/postgresql.conf`
 - Cấu hình:
@@ -243,8 +251,8 @@ sudo systemctl start postgresql
     postgres=# select * from users;
     id |      name
     ----+-----------------
-    1 | nguyen hai long
-    2 | hoang duc canh
+    1 | Nguyen Hai Long
+    2 | Hoang Duc Canh
     (2 rows)
     ```
 - Thử Insert dữ liệu từ Slave:
