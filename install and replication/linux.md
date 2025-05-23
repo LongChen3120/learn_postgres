@@ -4,9 +4,9 @@ Hướng dẫn này mô tả cách thiết lập **asynchronous streaming replic
 
 ## Yêu cầu
 - PostgreSQL cài trên cả 3 node (master, slave_1, slave_2):
-  + Địa chỉ ip master: 192.168.110.31
-  + Địa chỉ ip slave_1: 192.168.110.32
-  + Địa chỉ ip slave_2: 192.168.110.164
+  + Địa chỉ ip master (node 1): 192.168.110.31
+  + Địa chỉ ip slave_1 (node 2): 192.168.110.32
+  + Địa chỉ ip slave_2 (node 3): 192.168.110.164
 - Mở port 5432 trên firewall.
 - Kết nối mạng giữa các node hoạt động tốt.
 
@@ -52,7 +52,24 @@ Thực hiện tương tự như ở node master
 ---
 
 ## 2. CẤU HÌNH REPLICATION
-### Bước 1: Cấu hình Master
+Cấu hình replication gồm có 2 loại là Streaming Replication và Logical Replication, trong đó:
+- Streaming Replication sử dụng file WAL để đồng bộ dữ liệu giữa các node. Các thay đổi trong primary server sẽ được ghi vào WAL và gửi tới các standby server. Streaming Replication bao gồm 2 loại là Asynchronous streaming replication và Synchronous streaming replication:
+  
+  + Asynchronous streaming replication: các thay đổi trong primary server sẽ được ghi vào WAL và gửi tới các standby server. Primary server không đợi xác nhận từ standby server trước khi commit giao dịch.
+    - Ưu điểm hiệu suất tốt do primary server không phải đợi.
+    - Nhược điểm có thể mất dữ liệu nếu primary server gặp sự cố trước khi thông tin trong WAL được ghi nhận trên standby server.
+  + Synchronous streaming replication: các thay đổi trong primary server sẽ được ghi vào WAL và gửi tới các standby server. Primary server sẽ đợi xác nhận từ một hoặc nhiều standby server rằng các thay đổi đã được ghi vào đĩa trước khi commit giao dịch.
+
+    - Ưu điểm tính nhất quán dữ liệu cao, khi primary server gặp sự cố, dữ liệu được bảo toàn trên ít nhất 1 standby server.
+
+    - Nhược điểm hiệu năng kém do cần phải đợi xác nhận từ ít nhất 1 standby server, hoặc có thể bị treo nếu không có standby server nào xác nhận thì primary server sẽ không commit giao dịch
+- Logical Replication sử dụng các message để đồng bộ dữ liệu giữa các node. Sao chép logic ở mức độ dữ liệu, thay vì sao chép toàn bộ cluster, Logical Replication cho phép sao chép các đối tượng cụ thể (ví dụ: bảng, sequences) trên cơ sở từng database. Dữ liệu được primary server decode thành message (row-level operation: INSERT/UPDATE/DELETE), sau đó gửi cho subscriber
+
+\*WAL là một hệ thống ghi nhật ký (logging system) mà PostgreSQL sử dụng để đảm bảo tính toàn vẹn dữ liệu và khả năng phục hồi sau lỗi. Nguyên tắc cốt lõi của WAL là: trước khi bất kỳ thay đổi nào được ghi vào các file dữ liệu chính, thay đổi đó phải được ghi vào WAL. WAL trong PostgreSQL có các cấp độ ghi thông tin khác nhau, được gọi là wal_level, bao gồm 3 cấp độ chính: minimal, replica, logical
+
+**Trong hướng dẫn này sẽ sử dụng Asynchronous streaming replication để cấu hình replication cho 3 node Postgresql trên**
+
+### Bước 1: Cấu hình Master (192.168.110.31)
 #### 1.1. Stop Master
 ```bash
 sudo systemctl stop postgresql
