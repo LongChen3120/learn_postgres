@@ -1,3 +1,4 @@
+# Cấu hình High avaibility và Failover tự động
 Ở bước trước, tôi đã hướng dẫn bạn [cài đặt và cấu hình replication](../install%20and%20replication/linux.md) cụm Postgresql trên linux với 3 node (master, slave_1, slave_2):
   + Địa chỉ ip master (node1): 192.168.110.31
   + Địa chỉ ip slave_1 (node 2): 192.168.110.32
