@@ -155,21 +155,21 @@ sudo systemctl restart postgresql
 
 #### 2.1 Sao chép dữ liệu từ Master
 **Thực hiện trên cả 2 Slave lần lượt các bước sau:**
-##### 2.1.1. Dừng Postgresql:
+##### 2.1.1. Dừng Postgresql
    ```bash
    sudo systemctl stop postgresql
    ```
-##### 2.1.2. Xóa dữ liệu cũ:
+##### 2.1.2. Xóa dữ liệu cũ
    ```bash
    sudo rm -rf /var/lib/postgresql/14/main/*
    ```
-##### 2.1.3. Sao chép dữ liệu:
+##### 2.1.3. Sao chép dữ liệu
    ```bash
    sudo -u postgres pg_basebackup -h 192.168.110.31 -D /var/lib/postgresql/14/main -U replicator -P --wal-method=stream
    ```
 
 #### 2.2 Chỉnh sửa `postgresql.conf`
-##### 2.2.1. Trên Slave_1:
+##### 2.2.1. Trên Slave_1
 - File: `/etc/postgresql/14/main/postgresql.conf`
 - Cấu hình:
   ```
@@ -179,7 +179,7 @@ sudo systemctl restart postgresql
   max_connections = 1000
   ```
     Lưu ý thay địa chỉ ip host Master của bạn và điền password bạn đã đặt vào phần `your_secure_password`
-##### 2.2.2. Trên Slave_2:
+##### 2.2.2. Trên Slave_2
 - File: `/etc/postgresql/14/main/postgresql.conf`
 - Cấu hình:
   ```
