@@ -14,9 +14,9 @@ Mục tiêu của hướng dẫn này là tự động hóa quá trình phát hi
 Khi Patroni kết hợp với etcd, cụm PostgreSQL sẽ có khả năng tự động xử lý các sự cố, đảm bảo tính sẵn sàng cao nhất.
 
 ## 2. CÀI ĐẶT VÀ CẤU HÌNH HIGH AVAIBILITY
-### 2.1. Cài đặt etcd:
+### 2.1. Cài đặt và cấu hình etcd
 Patroni cần một nơi để lưu thông tin về cụm, và mình sẽ dùng etcd vì nó đơn giản và phổ biến. Giả sử bạn có 3 máy (node1, node2, node3), mình sẽ chạy etcd trên node1 để dễ triển khai.
-#### 2.1.1. Trên node1 (192.168.110.31):
+#### 2.1.1. Trên node1 (192.168.110.31)
 - Update gói: 
     ```bash
     sudo apt update
@@ -44,10 +44,10 @@ Patroni cần một nơi để lưu thông tin về cụm, và mình sẽ dùng 
         sudo systemctl start etcd
         sudo systemctl enable etcd
         ```
-#### 2.1.2. Trên node2 và node3 (192.168.110.164 và 192.168.110.32):
+#### 2.1.2. Trên node2 và node3 (192.168.110.164 và 192.168.110.32)
 Không cần cài etcd ở đây, chỉ cần đảm bảo hai node này có thể kết nối đến IP của node1 (ví dụ: 192.168.110.31:2379)
 
-### 2.2. Cài đặt Patroni:
+### 2.2. Cài đặt và cấu hình Patroni
 Thực hiện lần lượt các bước dưới dây cho cả 3 node:
 - Cài đặt:
     ```bash
