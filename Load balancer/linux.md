@@ -1,6 +1,6 @@
 # Cấu hình Load balancer
 ## 1. TỔNG QUAN
-Ở bước trước, chúng ta đã thiết lập [cấu hình High avaibility (HA) và failover tự động](../install%20and%20replication/linux.md) sử dụng Patroni và etcd cho cụm Postgresql trên linux với 3 node (master, slave_1, slave_2):
+Ở bước trước, chúng ta đã thiết lập [cấu hình High avaibility (HA) và failover tự động](../High avaibility and Failover/linux.md) sử dụng Patroni và etcd cho cụm Postgresql trên linux với 3 node (master, slave_1, slave_2):
   + Địa chỉ ip master (node1): 192.168.110.31
   + Địa chỉ ip slave_1 (node 2): 192.168.110.32
   + Địa chỉ ip slave_2 (node 3): 192.168.110.164. 
