@@ -20,7 +20,7 @@ Với HAProxy, cụm PostgreSQL sẽ đạt được tính sẵn sàng cao thự
     sudo apt update
     ```
 
-- Cài đặt etcd: 
+- Cài đặt HAProxy: 
     ```bash
     sudo apt install haproxy
     ```
@@ -113,12 +113,12 @@ Giải thích:
 - Patroni API (cổng 8008): Dùng để xác định vai trò Leader/Replica.
 - Logging: Ghi log vào /var/log/haproxy.log qua syslog.
 
-### 2.3. Khởi động HAproxy và bật khởi động cùng hệ thống
+### 2.3. Khởi động HAProxy và bật khởi động cùng hệ thống
 ```bash
 sudo systemctl start haproxy
 sudo systemctl enable haproxy
 ```
-kiểm tra trạng thái của HAproxy: `sudo systemctl status haproxy`; kết quả thấy *running* và log không có lỗi tức là HAproxy khởi động thành công:
+kiểm tra trạng thái của HAProxy: `sudo systemctl status haproxy`; kết quả thấy *running* và log không có lỗi tức là HAProxy khởi động thành công:
 ```bash
 haproxy.service - HAProxy Load Balancer
     Loaded: loaded (/lib/systemd/system/haproxy.service; enabled; vendor preset: enabled)
@@ -140,7 +140,7 @@ May 23 14:40:43 webserver systemd[1]: Started HAProxy Load Balancer.
 
 ## 3. KIỂM TRA CÂN BẰNG TẢI
 Vì chỉ ghi được vào leader qua cổng 5434, còn các server replica chỉ đọc qua cổng 5435 nên các ứng dụng kết nối tới cụm cũng cần lưu ý cổng kết nối để thực hiện query phù hợp.
-Để kiểm tra được quá trình HAproxy cân bằng tải, trước tiên cần tạo hàm trả về info của mỗi node rồi sau đó query qua HAproxy để xem kết quả từ hàm trả về info
+Để kiểm tra được quá trình HAProxy cân bằng tải, trước tiên cần tạo hàm trả về info của mỗi node rồi sau đó query qua HAProxy để xem kết quả từ hàm trả về info
 ### 3.1. Tạo hàm trả về info node
 - Kiểm tra node leader:
     ```bash
@@ -179,7 +179,7 @@ Vì chỉ ghi được vào leader qua cổng 5434, còn các server replica ch�
     ```
     Hàm này chỉ cần tạo ở leader là sẽ được đồng bộ tới các replica, mục đích để bước tiếp theo gọi hàm này nó sẽ lấy địa chỉ ip của node hiện tại và trả về.
 ### 3.2. Kiểm tra phân phối tải
-- Tạo 1 kết nối tới Postgres (thực chất là HAproxy trên host 192.168.110.31) tại port 5435, database là postgres (database chứa hàm get_node_info):
+- Tạo 1 kết nối tới Postgres (thực chất là HAProxy trên host 192.168.110.31) tại port 5435, database là postgres (database chứa hàm get_node_info):
 <div align="center">
     <img src="../imgs/create_connection.png" alt="create_connection"></img>
     <p>Tạo kết nối</p>
@@ -200,8 +200,8 @@ Vì chỉ ghi được vào leader qua cổng 5434, còn các server replica ch�
     <p>Gọi hàm lấy node info lần 2</p>
 </div>
 
-Như vậy ta có thể thấy ở kết nối đầu tiên, HAproxy điều phối kết nối tới node3 có ip là 192.168.110.32. Sau khi ngắt kết nối và kết nối lại thì lần này HAproxy đã điều phối kết nối tới node2 có ip là 192.168.110.164.
+Như vậy ta có thể thấy ở kết nối đầu tiên, HAProxy điều phối kết nối tới node3 có ip là 192.168.110.32. Sau khi ngắt kết nối và kết nối lại thì lần này HAProxy đã điều phối kết nối tới node2 có ip là 192.168.110.164.
 
-Tương tự ta có thể stop leader để quá trình failover bầu chọn leader mới sau đó kiểm tra HAproxy chuyển hướng kết nối tới leader mới ra sao.
+Tương tự ta có thể stop leader để quá trình failover bầu chọn leader mới sau đó kiểm tra HAProxy chuyển hướng kết nối tới leader mới ra sao.
 
-Kết luận HAproxy đã cân bằng tải sử dụng thuật toán round robin như trong config. **Cấu hình load balancer xử dụng HAproxy cho cụm Postgres 3 node thành công.**
+Kết luận HAProxy đã cân bằng tải sử dụng thuật toán round robin như trong config. **Cấu hình load balancer xử dụng HAProxy cho cụm Postgres 3 node thành công.**
