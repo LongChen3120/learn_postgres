@@ -106,7 +106,7 @@ backend pg_read_backend
     server node3 192.168.110.32:5432 check port 8008
 ```
 Giải thích:
-- frontend pg_write: HAProxy lắng nghe trên cổng 5434, dảm bảo mọi thao tác ghi (INSERT, UPDATE, DELETE) luôn đi đến máy chủ Primary (Master) hiện tại.
+- frontend pg_write: HAProxy lắng nghe trên cổng 5434, đảm bảo mọi thao tác ghi (INSERT, UPDATE, DELETE) luôn đi đến máy chủ Primary (Master) hiện tại.
 - backend pg_write_backend: kiểm tra sức khỏe HTTP (http-check) tới endpoint /leader của Patroni trên cổng 8008. Chỉ máy chủ nào đang là Primary mới trả về trạng thái 200 OK cho /leader. HAProxy sẽ chỉ chuyển tiếp kết nối tới duy nhất máy chủ đó.
 - frontend pg_read: HAProxy lắng nghe trên cổng 5435.
 - backend pg_read_backend: Cân bằng tải các truy vấn đọc giữa tất cả các máy chủ PostgreSQL đang hoạt động (cả Primary và các Standby). Nó sử dụng thuật toán Round Robin để phân phối kết nối. Kiểm tra sức khỏe HTTP được thực hiện tới endpoint /replica của Patroni trên cổng 8008. Endpoint này trả về 200 OK cho bất kỳ node nào đang là Primary hoặc Standby hoạt động bình thường.
@@ -204,4 +204,4 @@ Như vậy ta có thể thấy ở kết nối đầu tiên, HAProxy điều ph�
 
 Tương tự ta có thể stop leader để quá trình failover bầu chọn leader mới sau đó kiểm tra HAProxy chuyển hướng kết nối tới leader mới ra sao.
 
-Kết luận HAProxy đã cân bằng tải sử dụng thuật toán round robin như trong config. **Cấu hình load balancer xử dụng HAProxy cho cụm Postgres 3 node thành công.**
+Kết luận HAProxy đã cân bằng tải sử dụng thuật toán round robin như trong config. **Cấu hình load balancer sử dụng HAProxy cho cụm Postgres 3 node thành công.**
