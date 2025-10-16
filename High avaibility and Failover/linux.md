@@ -159,3 +159,8 @@ Kết quả là node1 đang là leader, node2 và node3 là các node replica �
     <p>Check cluster patroni</p>
 </div>
 Kết quả là trạng thái node1 dừng hoạt động, chuyển vai trò từ leader sang replica. node2 được bầu chọn làm leader, chuyển trạng thái từ streaming sang running. node3 giữ nguyên vai trò và trạng thái streaming. Như vậy là quá trình failover đã diễn thành công một cách tự động.
+
+## 4. RELOAD CỤM KHÔNG DOWNTIME
+```bash
+patronictl -c /etc/patroni.yml reload mycluster
+```
